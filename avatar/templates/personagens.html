@@ -1,0 +1,113 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Avatar The Last Airbender</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        h1 { font-weight: bold; }
+        .btn-water { background-color: #1E90FF; color: white; }
+        .btn-earth { background-color: #556B2F; color: white; }
+        .btn-fire  { background-color: #B22222; color: white; }
+        .btn-air   { background-color: #DAA520; color: white; }
+
+        .btn-water:hover { background-color: #187bcd; color: white; }
+        .btn-earth:hover { background-color: #445624; color: white; }
+        .btn-fire:hover  { background-color: #8b1a1a; color: white; }
+        .btn-air:hover   { background-color: #b8860b; color: white; }
+    </style>
+
+</head>
+
+<body class="bg-light">
+<div class="container py-4">
+
+    <h1 class="text-center">Avatar The Last Airbender</h1>
+    <h2 class="text-center mb-3">Characters</h2>
+
+    <!-- Botões de filtro por elemento -->
+    <div class="d-flex justify-content-center gap-3 mb-4">
+        <a href="?element=agua&page=1" class="btn btn-water px-4 py-2">Water</a>
+        <a href="?element=terra&page=1" class="btn btn-earth px-4 py-2">Earth</a>
+        <a href="?element=fogo&page=1" class="btn btn-fire px-4 py-2">Fire</a>
+        <a href="?element=ar&page=1" class="btn btn-air px-4 py-2">Air</a>
+        <a href="?page=1" class="btn btn-secondary px-4 py-2">Clear</a>
+    </div>
+
+    <!-- Cards -->
+    <div class="row g-4" id="lista-personagens">
+        {% include "cards.html" %}
+    </div>
+
+    <!-- Loader, se não tem mais começa oculto -->
+    <div id="sentinela" class="text-center py-4" {% if not has_more %}style="display:none"{% endif %}>
+        <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+    </div>
+
+</div>
+
+<script>
+    let page = {{ page }};
+    let loading = false;
+    let hasMore = {{ has_more|yesno:"true,false" }};
+    const elemento = "{{ elemento }}";
+
+    const sentinela = document.getElementById("sentinela");
+    const lista = document.getElementById("lista-personagens");
+
+    async function carregarMais() {
+        if (!hasMore || loading) return;
+        loading = true;
+        page += 1;
+
+        const params = new URLSearchParams({ page: page });
+        if (elemento) params.set("element", elemento);
+
+        const url = `?${params.toString()}`;
+
+        try {
+            const resposta = await fetch(url, {
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+            if (!resposta.ok) throw new Error("Error");
+
+            const data = await resposta.json();
+
+            // caso a API retorne HTML vazio
+            if (!data.html || !data.html.trim()) {
+                hasMore = false;
+                sentinela.remove();
+                loading = false;
+                return;
+            }
+
+            lista.insertAdjacentHTML("beforeend", data.html);
+
+            // hasMore é baseado na API (data.has_more)
+            hasMore = data.has_more === true;
+            loading = false;
+
+            if (!hasMore) sentinela.remove();
+        } catch (err) {
+            console.error("Load More Error:", err);
+            loading = false;
+        }
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) carregarMais();
+    }, {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.1
+    });
+
+    if (sentinela) observer.observe(sentinela);
+</script>
+
+</body>
+</html>

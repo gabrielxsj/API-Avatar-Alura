@@ -1,0 +1,44 @@
+{% for p in personagens %}
+<div class="col-12">
+    <div class="card shadow-sm mb-3" id="personagem-{{ p.id }}">
+        <div class="row g-0">
+
+            <div class="col-md-3 d-flex align-items-center justify-content-center bg-white p-2">
+                {% if p.photoUrl %}
+                    <img src="{{ p.photoUrl }}" class="img-fluid rounded" alt="{{ p.name }}">
+                {% else %}
+                    <span class="text-muted">None</span>
+                {% endif %}
+            </div>
+
+            <div class="col-md-9">
+                <div class="card-body">
+                    <h3 class="card-title mb-1">{{ p.name }}</h3>
+
+                    <p class="mb-1"><strong>Affiliation:</strong> {{ p.affiliation|default:"None" }}</p>
+
+                    <p class="mb-1">
+                        <strong>Allies:</strong><br>
+                        {% if p.allies %}
+                            {% for a in p.allies %}• {{ a }}<br>{% endfor %}
+                        {% else %}
+                            <span class="text-muted">None</span>
+                        {% endif %}
+                    </p>
+
+                    <p class="mb-0">
+                        <strong>Enemies:</strong><br>
+                        {% if p.enemies %}
+                            {% for e in p.enemies %}• {{ e }}<br>{% endfor %}
+                        {% else %}
+                            <span class="text-muted">None</span>
+                        {% endif %}
+                    </p>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endfor %}
