@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: avatar-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn avatar_setup.wsgi:application
+    plan: free
